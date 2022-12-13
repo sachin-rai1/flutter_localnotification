@@ -24,7 +24,8 @@ class NotificationService {
     color: Colors.green,
     playSound: true,
     priority: Priority.high,
-    vibrationPattern: Int64List.fromList([0, 1000, 200, 200, 200, 200, 200, 200]),
+    vibrationPattern:
+        Int64List.fromList([0, 1000, 200, 200, 200, 200, 200, 200]),
     category: AndroidNotificationCategory.alarm,
     importance: Importance.max,
     actions: [
@@ -79,20 +80,9 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime);
   }
+  showAlarmNotification() async
+  {
 
-// AwesomeNotifications().createNotification(
-//       content: NotificationContent(
-//         id: 1,
-//         channelKey: 'scheduled',
-//         title: 'wait 5 seconds to show',
-//         body: 'now is 5 seconds later',
-//         wakeUpScreen: true,
-//         category: NotificationCategory.Alarm,
-//       ),
-//       schedule: NotificationInterval(
-//           interval: 1,
-//           repeats: true,
-//           preciseAlarm: true,
-//           timeZone: await AwesomeNotifications().getLocalTimeZoneIdentifier()));
-// }
+  }
+
 }

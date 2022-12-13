@@ -1,10 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'NotificationService.dart';
+import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_localnotification/AlarmClock.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'NotificationService.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  IsolateNameServer.registerPortWithName(
+    port.sendPort,
+    isolateName,
+  );
+  prefs = await SharedPreferences.getInstance();
+  if (!prefs!.containsKey(countKey)) {
+    await prefs!.setInt(countKey, 0);
+  }
   await NotificationService().init(); // <----
   runApp(const MyApp());
 }
@@ -19,7 +30,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Homepage(),
+      home: const Homepage(),
     );
   }
 }
@@ -41,7 +52,7 @@ class _HomepageState extends State<Homepage> {
           children: [
             ElevatedButton(
                 onPressed: () {
-                 NotificationService().showNotification();
+                  NotificationService().showNotification();
                 },
                 child: const Text("Click Me ")),
             ElevatedButton(
