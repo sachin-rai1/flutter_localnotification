@@ -1,3 +1,4 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
@@ -48,6 +49,8 @@ class _AlarmManager extends State<AlarmManager> {
 
   static void _oneShotAtTaskCallback() {
     print("One Shot At Task Running");
+    NotificationService().showNotification();
+    Vibration.vibrate(pattern: [0, 1000, 200, 2000], intensities: [5, 255]);
   }
 
   static void _periodicTaskCallback() {
@@ -203,12 +206,12 @@ class _AlarmManager extends State<AlarmManager> {
       '13:00': false,
       '14:35:00': false,
       '15:00': false,
-      '16:00': false,
-      '17:00': false,
-      '18:00': false,
-      '19:00': false,
+      '16:37': false,
+      '16:38': false,
+      '16:39': false,
+      '16:40': false,
     };
-
+    var date = "";
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -284,7 +287,15 @@ class _AlarmManager extends State<AlarmManager> {
                         onChanged: (value) async {
                           setState(() {
                             values[key] = value!;
+                            date = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + key.toString() + ":00.00";
+                            if (kDebugMode) {
+                              print(date);
+                            }
                           });
+                          if (values[key] = true) {
+                            AndroidAlarmManager.oneShotAt(DateTime.parse(date),
+                                _oneShotAtTaskId, _oneShotAtTaskCallback);
+                          }
                         },
                       );
                     });

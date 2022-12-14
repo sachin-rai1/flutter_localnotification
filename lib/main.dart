@@ -14,10 +14,10 @@ Future<void> main() async {
     port.sendPort,
     isolateName,
   );
-  prefs = await SharedPreferences.getInstance();
-  if (!prefs!.containsKey(countKey)) {
-    await prefs!.setInt(countKey, 0);
-  }
+  // prefs = await SharedPreferences.getInstance();
+  // if (!prefs!.containsKey(countKey)) {
+  //   await prefs!.setInt(countKey, 0);
+  // }
   await NotificationService().init(); // <----
 
   await AndroidAlarmManager.initialize();
