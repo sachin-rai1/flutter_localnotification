@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localnotification/AlarmClock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'NotificationService.dart';
+import 'alarmManager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +19,8 @@ Future<void> main() async {
     await prefs!.setInt(countKey, 0);
   }
   await NotificationService().init(); // <----
+
+  await AndroidAlarmManager.initialize();
   runApp(const MyApp());
 }
 
@@ -28,9 +32,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
-      home: const Homepage(),
+      home: const AlarmManager(),
     );
   }
 }

@@ -1,6 +1,4 @@
 import 'dart:typed_data';
-
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -23,14 +21,15 @@ class NotificationService {
     enableLights: true,
     color: Colors.green,
     playSound: true,
+    sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
     priority: Priority.high,
     vibrationPattern:
-        Int64List.fromList([0, 1000, 200, 200, 200, 200, 200, 200]),
+        Int64List.fromList([0, 1000, 200, 1000, 200, 1000, 200, 1000]),
     category: AndroidNotificationCategory.alarm,
     importance: Importance.max,
     actions: [
-      AndroidNotificationAction("1", "Mark As Read"),
-      AndroidNotificationAction("2", "Open"),
+      const AndroidNotificationAction("1", "Mark As Read"),
+      const AndroidNotificationAction("2", "Open"),
     ],
   ));
 
@@ -63,8 +62,8 @@ class NotificationService {
   showNotification() async {
     await flutterLocalNotificationsPlugin.show(
         0,
-        "A Notification From My Application",
-        "This notification was sent using Flutter Local Notifications Package",
+        "Your Timer is Up",
+        "Wake Up",
         platformChannelSpecificsconst,
         payload: "data");
   }
