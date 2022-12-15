@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -21,7 +22,7 @@ class NotificationService {
     enableLights: true,
     color: Colors.green,
     playSound: true,
-    sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
+    // sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
     priority: Priority.high,
     vibrationPattern:
         Int64List.fromList([0, 1000, 200, 1000, 200, 1000, 200, 1000]),
@@ -32,6 +33,20 @@ class NotificationService {
       const AndroidNotificationAction("2", "Open"),
     ],
   ));
+  NotificationDetails themePlatformChannelSpecificsconst = const NotificationDetails(
+      android: AndroidNotificationDetails(
+        "channelId",
+        "channelName",
+        ticker: 'ticker',
+        channelShowBadge: true,
+        enableLights: true,
+        color: Colors.green,
+        enableVibration: false,
+        playSound: true,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.alarm,
+        importance: Importance.max,
+      ));
 
   factory NotificationService() {
     return _notificationService;
@@ -43,28 +58,35 @@ class NotificationService {
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsIOS =
+    DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: false,
-      // onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+      onDidReceiveLocalNotification: onDidReceiveLocalNotification,
     );
 
     FlutterLocalNotificationsPlugin().initialize(
       InitializationSettings(
           android: initializationSettingsAndroid,
           iOS: initializationSettingsIOS),
+      onDidReceiveNotificationResponse: onNotificationClicked,
     );
     tz.initializeTimeZones();
   }
 
   showNotification() async {
     await flutterLocalNotificationsPlugin.show(
-        0,
-        "Your Timer is Up",
-        "Wake Up",
-        platformChannelSpecificsconst,
+        0, "Your Timer is Up", "Wake Up", platformChannelSpecificsconst,
+        payload: "data");
+  }
+
+  showThemeNotification({required String title, required String body}) async {
+    await flutterLocalNotificationsPlugin.show(
+        3,
+        title,
+        body,
+        themePlatformChannelSpecificsconst,
         payload: "data");
   }
 
@@ -79,9 +101,13 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime);
   }
-  showAlarmNotification() async
-  {
 
+  showAlarmNotification() async {}
+
+  Future onDidReceiveLocalNotification(
+      int id, String? title, String? body, String? payload) async {
+    Get.dialog(const Text("Welcome To Flutter"));
   }
 
+  void onNotificationClicked(NotificationResponse details) {}
 }

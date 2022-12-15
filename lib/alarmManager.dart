@@ -1,9 +1,11 @@
 import 'package:date_format/date_format.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localnotification/NotificationService.dart';
+import 'package:get/get.dart';
 import 'package:vibration/vibration.dart';
 import 'Constant.dart';
 
@@ -15,47 +17,34 @@ class AlarmManager extends StatefulWidget {
 }
 
 class _AlarmManager extends State<AlarmManager> {
+
+  @override
+  void initState()
+   {
+    super.initState();
+     NotificationService().init();
+    AndroidAlarmManager.initialize();
+  }
+
   final int _oneShotTaskId = 1;
   final int _oneShotAtTaskId = 2;
   final int _periodicTaskId = 3;
 
-  List timings = [
-    '00:00',
-    '01:00',
-    '03:00',
-    '04:00',
-    '05:00',
-    '06:00',
-    '07:00',
-    '08:00',
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '15:00',
-    '16:00',
-    '17:00',
-    '18:00',
-    '19:00'
-  ];
-
   static void _oneShotTaskCallback() {
     print("One Shot Task Running");
-    // Vibration.vibrate(pattern: [500, 10000, 500, 20000], intensities: [5, 255]);
+    Vibration.vibrate(pattern: [0, 10000, 500, 20000]);
     NotificationService().showNotification();
   }
 
   static void _oneShotAtTaskCallback() {
     print("One Shot At Task Running");
     NotificationService().showNotification();
-    Vibration.vibrate(pattern: [0, 1000, 200, 2000], intensities: [5, 255]);
+    Vibration.vibrate(pattern: [0, 1000, 200, 2000]);
   }
 
   static void _periodicTaskCallback() {
     print("Periodic Task Running");
-    Vibration.vibrate(pattern: [500, 1000, 500, 2000], intensities: [5, 255]);
+    Vibration.vibrate(pattern: [0, 1000, 500, 2000]);
   }
 
   void _scheduleOneShotAlarm(bool isTimed) async {
@@ -188,6 +177,8 @@ class _AlarmManager extends State<AlarmManager> {
     return DateTime.now();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     Map<String, bool> values = {
@@ -200,21 +191,35 @@ class _AlarmManager extends State<AlarmManager> {
       '07:00': false,
       '08:00': false,
       '09:00': false,
-      '10:00': false,
-      '11:00': false,
-      '12:00': false,
-      '13:00': false,
-      '14:35:00': false,
-      '15:00': false,
-      '16:37': false,
-      '16:38': false,
-      '16:39': false,
-      '16:40': false,
+      '10:14': false,
+      '10:15': false,
+      '10:16': false,
+      '10:17': false,
+      '10:18': false,
+      '10:19': false,
+      '10:37': false,
+      '10:38': false,
+      '10:39': false,
+      '10:40': false,
+      '10:41': false,
     };
     var date = "";
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.theme.backgroundColor,
+        appBar: AppBar(
+          leading: GestureDetector(
+            onTap: () {
+              ThemeService().switchTheme();
+              NotificationService().showThemeNotification(
+               title: "Theme Changed",
+               body: Get.isDarkMode?"Activated light Mode":"Activated Dark Mode",
+              );
+              print(Get.isDarkMode);
+            },
+            child: const Icon(CupertinoIcons.moon_fill),
+          ),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.only(top: 20),
@@ -225,6 +230,7 @@ class _AlarmManager extends State<AlarmManager> {
                   appName,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
                 ),
+                SizedBox(height: 10,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -280,19 +286,25 @@ class _AlarmManager extends State<AlarmManager> {
                     return StatefulBuilder(
                         builder: (BuildContext context, StateSetter setState) {
                       return CheckboxListTile(
-                        activeColor: Colors.red,
+                        // activeColor: Colors.red,
                         selected: true,
                         title: Text(key),
                         value: values[key],
                         onChanged: (value) async {
                           setState(() {
                             values[key] = value!;
-                            date = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd]) + " " + key.toString() + ":00.00";
+                            date = "${formatDate(DateTime.now(), [
+                                  yyyy,
+                                  '-',
+                                  mm,
+                                  '-',
+                                  dd
+                                ])} $key:00.00";
                             if (kDebugMode) {
                               print(date);
                             }
                           });
-                          if (values[key] = true) {
+                          if (values[key] == true) {
                             AndroidAlarmManager.oneShotAt(DateTime.parse(date),
                                 _oneShotAtTaskId, _oneShotAtTaskCallback);
                           }

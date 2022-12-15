@@ -1,9 +1,10 @@
 import 'dart:ui';
-
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localnotification/AlarmClock.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localnotification/Constant.dart';
+import 'package:flutter_localnotification/HomePage.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 import 'NotificationService.dart';
 import 'alarmManager.dart';
@@ -14,13 +15,7 @@ Future<void> main() async {
     port.sendPort,
     isolateName,
   );
-  // prefs = await SharedPreferences.getInstance();
-  // if (!prefs!.containsKey(countKey)) {
-  //   await prefs!.setInt(countKey, 0);
-  // }
-  await NotificationService().init(); // <----
-
-  await AndroidAlarmManager.initialize();
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -29,49 +24,49 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: const AlarmManager(),
+      theme: Themes.lightTheme,
+      themeMode: ThemeService().theme,
+      darkTheme: Themes.darkTheme,
+      home: const HomePage(),
     );
   }
 }
 
-class Homepage extends StatefulWidget {
-  const Homepage({Key? key}) : super(key: key);
-
-  @override
-  State<Homepage> createState() => _HomepageState();
-}
-
-class _HomepageState extends State<Homepage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-                onPressed: () {
-                  NotificationService().showNotification();
-                },
-                child: const Text("Click Me ")),
-            ElevatedButton(
-                onPressed: () {
-                  NotificationService().showScheduledNotification();
-                },
-                child: const Text("Click Me Scheduled")),
-            ElevatedButton(
-                onPressed: () {
-                  NotificationService().showScheduledNotification();
-                },
-                child: const Text("Snooze")),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class Homepage extends StatefulWidget {
+//   const Homepage({Key? key}) : super(key: key);
+//
+//   @override
+//   State<Homepage> createState() => _HomepageState();
+// }
+//
+// class _HomepageState extends State<Homepage> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             ElevatedButton(
+//                 onPressed: () {
+//                   NotificationService().showNotification();
+//                 },
+//                 child: const Text("Click Me ")),
+//             ElevatedButton(
+//                 onPressed: () {
+//                   NotificationService().showScheduledNotification();
+//                 },
+//                 child: const Text("Click Me Scheduled")),
+//             ElevatedButton(
+//                 onPressed: () {
+//                   NotificationService().showScheduledNotification();
+//                 },
+//                 child: const Text("Snooze")),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
