@@ -6,9 +6,6 @@ import 'package:flutter_localnotification/HomePage.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-import 'NotificationService.dart';
-import 'alarmManager.dart';
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   IsolateNameServer.registerPortWithName(
