@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_localnotification/AddTask.dart';
 import 'package:flutter_localnotification/AlarmClock.dart';
 import 'package:flutter_localnotification/Constant.dart';
 import 'package:flutter_localnotification/HomePage.dart';
@@ -27,6 +28,9 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeService().theme,
       darkTheme: Themes.darkTheme,
       home: const HomePage(),
+      routes: {
+        "AddTask":(context)=>const AddTask(),
+      },
     );
   }
 }

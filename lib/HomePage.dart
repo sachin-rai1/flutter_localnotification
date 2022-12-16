@@ -4,31 +4,27 @@ import 'package:date_picker_timeline/date_picker_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localnotification/AddTask.dart';
 import 'package:flutter_localnotification/MyWidgets.dart';
 import 'package:get/get.dart';
-
 import 'Constant.dart';
 import 'NotificationService.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
-
-
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
-  void initState()
-  {
+  void initState() {
     super.initState();
     NotificationService().init();
     AndroidAlarmManager.initialize();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,11 +33,7 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
-          children: [
-            _header(),
-            _calendar()
-
-          ],
+          children: [_header(), _calendar()],
         ),
       ),
     );
@@ -56,7 +48,9 @@ class _HomePageState extends State<HomePage> {
           style: const TextStyle(fontSize: 20),
         ),
         MyButton(
-          onTap: () {},
+          onTap: () {
+            Get.to(() =>const AddTask());
+          },
           label: 'Add Task',
           height: 50,
           width: 100,
@@ -83,24 +77,29 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   _calendar() {
-    return  Container(
-      color: Colors.amberAccent,
+    return Container(
+      color: Get.isDarkMode?Colors.grey:Colors.amberAccent,
       margin: const EdgeInsets.only(bottom: 10, top: 10),
       height: 100,
       child: DatePicker(
-          selectionColor: primaryColor,
-          monthTextStyle:Get.isDarkMode?const TextStyle(color: Colors.white):const TextStyle(),
-          dayTextStyle: Get.isDarkMode?const TextStyle(color: Colors.white):const TextStyle(),
-          dateTextStyle: Get.isDarkMode?const TextStyle(color: Colors.white):const TextStyle(),
+          selectionColor:Get.isDarkMode?Colors.black:primaryColor,
+          monthTextStyle: Get.isDarkMode
+              ? const TextStyle(color: Colors.white)
+              : const TextStyle(),
+          dayTextStyle: Get.isDarkMode
+              ? const TextStyle(color: Colors.white)
+              : const TextStyle(),
+          dateTextStyle: Get.isDarkMode
+              ? const TextStyle(color: Colors.white)
+              : const TextStyle(),
           selectedTextColor: Colors.white,
-          initialSelectedDate: DateTime.now(),
-          onDateChange: (value){
-            if (kDebugMode) {
-              print(value);
-            }
-          },
-          DateTime.now()),
+          initialSelectedDate: DateTime.now(), onDateChange: (value) {
+        if (kDebugMode) {
+          print(value);
+        }
+      }, DateTime.now()),
     );
   }
 }
