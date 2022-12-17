@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localnotification/Constant.dart';
+import 'package:flutter_localnotification/Controller/TaskController.dart';
+import 'package:flutter_localnotification/Models/TaskModels.dart';
 import 'package:flutter_localnotification/MyWidgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -15,6 +18,7 @@ class AddTask extends StatefulWidget {
 }
 
 class _AddTaskState extends State<AddTask> {
+  final TaskController _taskController = Get.put(TaskController());
   DateTime _selectedDate = DateTime.now();
   String _startTime = DateFormat("hh:mm a").format(DateTime.now()).toString();
   String _endTime = "09:00 PM";
@@ -32,14 +36,31 @@ class _AddTaskState extends State<AddTask> {
   final TextEditingController noteController = TextEditingController();
   final TextEditingController remindController = TextEditingController();
 
-  String hintTextTitle="";
-  String hintTextNote="";
-  String hintTextRemind="";
+  String hintTextTitle = "";
+  String hintTextNote = "";
+  String hintTextRemind = "";
+  final reminderSelection = "".obs;
+  final repeatSelection = "".obs;
+  final Rx<bool> isOnTapBlank = false.obs;
+  final Rx<bool> isOnTapValidate = true.obs;
+  late FocusNode titleFocus;
+  late FocusNode noteFocus;
+  late FocusNode remindFocus;
+  late FocusNode remindSelectionFocus;
+  late FocusNode repeatSelectionFocus;
+
+  @override
+  void initState() {
+    super.initState();
+    titleFocus = FocusNode();
+    noteFocus = FocusNode();
+    remindFocus = FocusNode();
+    remindSelectionFocus = FocusNode();
+    repeatSelectionFocus = FocusNode();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final selected = "".obs;
-    final repeatSelection = "".obs;
     return Scaffold(
       backgroundColor: context.theme.backgroundColor,
       appBar: AppBar(),
@@ -50,83 +71,44 @@ class _AddTaskState extends State<AddTask> {
               height: 10,
             ),
             MyTextField(
-              hintstyle: const TextStyle(color: Colors.redAccent),
+              focusNode: titleFocus,
+              hintstyle: isOnTapBlank.value == true
+                  ? const TextStyle(color: Colors.redAccent)
+                  : const TextStyle(),
               hint: hintTextTitle,
               label: "Title",
               controller: titleController,
             ),
-            MyTextField(
-              hint: hintTextNote,
-              hintstyle: const TextStyle(color: Colors.redAccent),
-              label: "Note",
-              controller: noteController,
+            Obx(
+              () => MyTextField(
+                focusNode: noteFocus,
+                hint: hintTextNote,
+                hintstyle: isOnTapBlank.value == true
+                    ? const TextStyle(color: Colors.redAccent)
+                    : const TextStyle(),
+                label: "Note",
+                controller: noteController,
+              ),
             ),
             _dateSelection(),
             _timeSelection(),
-            MyTextField(
-                controller: remindController,
-                hintstyle: const TextStyle(color: Colors.redAccent),
-                label: "Remind",
-                hint: hintTextRemind,
-                widget: Obx(
-                  () => DropdownButton(
-                    hint: const Text(
-                      'Select',
-                      style: TextStyle(fontSize: 16, color: primaryColor),
-                    ),
-                    onChanged: (newValue) {
-                      selected(newValue);
-                    },
-                    value: selected.value == "" ? null : selected.value,
-                    items: scheduleTime.map((selectedType) {
-                      return DropdownMenuItem(
-                        value: selectedType,
-                        child: Text(
-                          selectedType,
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                )),
-            Obx(() => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButton(
-                    hint: SizedBox(
-                        width: MediaQuery.of(context).size.width / 1.2,
-                        child: const Text(
-                          'Select',
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                        )),
-                    onChanged: (newValue) {
-                      repeatSelection(newValue);
-                    },
-                    value: repeatSelection.value == ""
-                        ? null
-                        : repeatSelection.value,
-                    items: repeat.map((selectedType) {
-                      return DropdownMenuItem(
-                        value: selectedType,
-                        child: Text(
-                          selectedType,
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                )),
+            _reminder(),
+            _repeater(),
             Container(
                 alignment: Alignment.topRight,
                 padding: const EdgeInsets.only(right: 15),
                 child: MyButton(
                   onTap: () {
-                    _validateData();
+                    setState(() {
+                      _validateData();
+                      if (isOnTapValidate.value == false) {
+                        print(isOnTapValidate.value);
+                        print("Form Invalid");
+                      } else {
+                        _addTaskToDb();
+
+                      }
+                    });
                   },
                   label: "Submit",
                   width: 100,
@@ -142,23 +124,58 @@ class _AddTaskState extends State<AddTask> {
   _validateData() {
     if (titleController.text.isEmpty) {
       setState(() {
-        hintTextTitle= "Please Enter Title";
+        hintTextTitle = "Please Enter Title";
+        isOnTapBlank.value = true;
+        isOnTapValidate.value = false;
+        FocusScope.of(context).requestFocus(titleFocus);
       });
-      Fluttertoast.showToast(msg: "Enter Title");
-
-
     } else if (noteController.text.isEmpty) {
       setState(() {
-        hintTextNote= "Please Enter Title";
+        hintTextNote = "Please Enter Note";
+        isOnTapBlank.value = true;
+        isOnTapValidate.value = false;
+        FocusScope.of(context).requestFocus(noteFocus);
       });
-      Get.snackbar("Please Input Note", "");
     } else if (remindController.text.isEmpty) {
       setState(() {
         hintTextRemind = "Please Enter Reminder";
+        isOnTapBlank.value = true;
+        isOnTapValidate.value = false;
+        FocusScope.of(context).requestFocus(remindFocus);
       });
-      Get.snackbar("Remind Time", "");
-    }
+    } else if (remindController.text.isNumericOnly == false) {
+      Get.snackbar("Please Enter No. Only", "In Reminder",
+          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+      isOnTapValidate.value = false;
+      FocusScope.of(context).requestFocus(remindFocus);
+    } else if (reminderSelection.value == "") {
+      isOnTapBlank.value = true;
+      isOnTapValidate.value = false;
+      FocusScope.of(context).requestFocus(remindSelectionFocus);
+    } else if (repeatSelection.value == "") {
+      isOnTapBlank.value = true;
+      isOnTapValidate.value = false;
+      FocusScope.of(context).requestFocus(remindSelectionFocus);
+    } else {
+      isOnTapBlank.value = false;
+      isOnTapValidate.value = true;
 
+    }
+  }
+
+  _addTaskToDb() async{
+  int value =  await _taskController.addTask(
+        task: TaskData(
+      title: titleController.text,
+      note: noteController.text.toString(),
+      date: DateFormat.yMd().format(_selectedDate),
+      startTime: _startTime,
+      endTime: _endTime,
+      remind: int.parse(remindController.text),
+      repeat: repeatSelection.toString(),
+    ));
+  print("My ID is $value");
+  print(noteController.text.toString());
   }
 
   _timeSelection() {
@@ -192,6 +209,71 @@ class _AddTaskState extends State<AddTask> {
         ),
       ],
     );
+  }
+
+  _repeater() {
+    return Obx(() => Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: DropdownButton(
+            focusNode: remindSelectionFocus,
+            hint: SizedBox(
+                width: MediaQuery.of(context).size.width / 1.2,
+                child: Text('Select',
+                    style: isOnTapBlank.value == true
+                        ? const TextStyle(fontSize: 16, color: Colors.redAccent)
+                        : const TextStyle(fontSize: 16))),
+            onChanged: (newValue) {
+              repeatSelection(newValue);
+            },
+            value: repeatSelection.value == "" ? null : repeatSelection.value,
+            items: repeat.map((selectedType) {
+              return DropdownMenuItem(
+                value: selectedType,
+                child: Text(
+                  selectedType,
+                  style: TextStyle(fontSize: 16),
+                ),
+              );
+            }).toList(),
+          ),
+        ));
+  }
+
+  _reminder() {
+    return MyTextField(
+        focusNode: remindFocus,
+        keyBoardType: TextInputType.number,
+        controller: remindController,
+        hintstyle: isOnTapBlank.value == true
+            ? const TextStyle(color: Colors.redAccent)
+            : const TextStyle(),
+        label: "Remind",
+        hint: hintTextRemind,
+        widget: Obx(
+          () => DropdownButton(
+            focusNode: remindSelectionFocus,
+            hint: Text('Select',
+                style: isOnTapBlank.value == true
+                    ? const TextStyle(fontSize: 16, color: Colors.redAccent)
+                    : const TextStyle(fontSize: 16)),
+            onChanged: (newValue) {
+              reminderSelection(newValue);
+            },
+            value:
+                reminderSelection.value == "" ? null : reminderSelection.value,
+            items: scheduleTime.map((selectedType) {
+              return DropdownMenuItem(
+                value: selectedType,
+                child: Text(
+                  selectedType,
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ));
   }
 
   _dateSelection() {

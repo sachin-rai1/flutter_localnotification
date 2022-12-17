@@ -10,6 +10,11 @@ const String oneShotAlarm = "oneShot";
 const String oneShotAtAlarm = "oneShotAt";
 const String periodicAlarm = "periodic";
 const Color primaryColor = Colors.blueAccent;
+const Color bluishClr = Colors.blueAccent;
+const Color pinkClr = Colors.pink;
+const Color yellowClr = Colors.yellow;
+
+
 
 class Themes {
   static final lightTheme = ThemeData(

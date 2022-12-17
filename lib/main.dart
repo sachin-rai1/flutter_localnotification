@@ -4,6 +4,7 @@ import 'package:flutter_localnotification/AddTask.dart';
 import 'package:flutter_localnotification/AlarmClock.dart';
 import 'package:flutter_localnotification/Constant.dart';
 import 'package:flutter_localnotification/HomePage.dart';
+import 'package:flutter_localnotification/db/DbHelper.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -13,6 +14,7 @@ Future<void> main() async {
     port.sendPort,
     isolateName,
   );
+  await DbHelper.initDb();
   await GetStorage.init();
   runApp(const MyApp());
 }
