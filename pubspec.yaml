@@ -49,6 +49,7 @@ dependencies:
   sqflite: ^2.2.2
   flutter_staggered_animations: ^1.1.1
   google_fonts: ^3.0.1
+  flutter_native_timezone: ^2.0.0
 
 dev_dependencies:
   flutter_test:

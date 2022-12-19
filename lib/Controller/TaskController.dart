@@ -18,6 +18,8 @@ class TaskController extends GetxController {
     taskList.assignAll(tasks.map((data) => TaskData.fromJson(data)).toList());
   }
 
+
+
   void delete(TaskData task){
    DbHelper.delete(task);
   }
@@ -25,4 +27,6 @@ class TaskController extends GetxController {
  void markTaskCompleted(int id) async{
     await DbHelper.update(id);
  }
+
+
 }

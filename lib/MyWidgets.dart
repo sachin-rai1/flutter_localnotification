@@ -15,7 +15,8 @@ class MyButton extends StatelessWidget {
       this.width,
       this.color,
       this.iconData,
-      this.gapWidth, this.textAlign})
+      this.gapWidth,
+      this.textAlign})
       : super(key: key);
 
   final Function()? onTap;
@@ -125,7 +126,9 @@ class TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.blueAccent,
+      decoration: BoxDecoration(
+          color: task?.isCompleted == 1 ? Colors.lightGreen : Colors.blueAccent,
+          borderRadius: BorderRadius.circular(25)),
       padding: const EdgeInsets.symmetric(horizontal: 25),
       width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.only(bottom: 12),

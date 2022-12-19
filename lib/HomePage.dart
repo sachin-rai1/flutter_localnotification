@@ -5,10 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localnotification/AddTask.dart';
+
 import 'package:flutter_localnotification/Models/TaskModels.dart';
 import 'package:flutter_localnotification/MyWidgets.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 import 'Constant.dart';
 import 'Controller/TaskController.dart';
 import 'NotificationService.dart';
@@ -22,6 +25,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TaskController _taskController = Get.put(TaskController());
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -78,33 +82,73 @@ class _HomePageState extends State<HomePage> {
       () => ListView.builder(
         itemCount: _taskController.taskList.length,
         itemBuilder: (BuildContext context, int index) {
-          print(_taskController.taskList.length);
-          return GestureDetector(
-              onTap: () {
-                _taskController.delete(_taskController.taskList[index]);
-                _taskController.getTasks();
-                print(_taskController.taskList.length);
-              },
-              child: AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: GestureDetector(
-                              onTap: () {
-                                _showBottomSheet(
-                                    context, _taskController.taskList[index]);
-                              },
-                              child: TaskTile(_taskController.taskList[index]),
-                            ),
-                          )
-                        ],
+          TaskData task = _taskController.taskList[index];
+          if (task.repeat == "Daily") {
+            DateTime date = DateFormat.Hm().parse(task.startTime.toString());
+            var myTime = DateFormat("HH:mm").format(date);
+
+            for (int i = 0; i < _taskController.taskList.length; i++) {
+              NotificationService().showScheduledNotification(
+                  int.parse(myTime.toString().split(":")[0]),
+                  int.parse(myTime.toString().split(":")[1]), task);
+            }
+
+            return GestureDetector(
+                onTap: () {
+                  _taskController.delete(_taskController.taskList[index]);
+                  _taskController.getTasks();
+                  print(_taskController.taskList.length);
+                },
+                child: AnimationConfiguration.staggeredList(
+                    position: index,
+                    child: SlideAnimation(
+                      child: FadeInAnimation(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showBottomSheet(context, task);
+                                },
+                                child: TaskTile(task),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  )));
+                    )));
+          }
+          if (task.date == DateFormat.yMd().format(_selectedDate)) {
+            print("This is Selected");
+            print(task.toJson());
+            return GestureDetector(
+                onTap: () {
+                  _taskController.delete(_taskController.taskList[index]);
+                  _taskController.getTasks();
+                  print(_taskController.taskList.length);
+                },
+                child: AnimationConfiguration.staggeredList(
+                    position: index,
+                    child: SlideAnimation(
+                      child: FadeInAnimation(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showBottomSheet(context, task);
+                                },
+                                child: TaskTile(task),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    )));
+          }
+          return Container();
         },
       ),
     ));
@@ -144,9 +188,11 @@ class _HomePageState extends State<HomePage> {
               : const TextStyle(),
           selectedTextColor: Colors.white,
           initialSelectedDate: DateTime.now(), onDateChange: (value) {
-        if (kDebugMode) {
-          print(value);
-        }
+        setState(() {
+          _selectedDate = value;
+          print(_selectedDate);
+          print(DateFormat.yMd().format(_selectedDate));
+        });
       }, DateTime.now()),
     );
   }

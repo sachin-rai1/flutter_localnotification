@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localnotification/Constant.dart';
 import 'package:flutter_localnotification/Controller/TaskController.dart';
+
 import 'package:flutter_localnotification/Models/TaskModels.dart';
 import 'package:flutter_localnotification/MyWidgets.dart';
+import 'package:flutter_localnotification/NotificationService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -20,8 +22,8 @@ class AddTask extends StatefulWidget {
 class _AddTaskState extends State<AddTask> {
   final TaskController _taskController = Get.put(TaskController());
   DateTime _selectedDate = DateTime.now();
-  String _startTime = DateFormat("hh:mm a").format(DateTime.now()).toString();
-  String _endTime = "09:00 PM";
+
+  String _endTime = Get.mediaQuery.alwaysUse24HourFormat?"21:00":"09:00 PM";
 
   List<String> scheduleTime = ["Seconds", "Minutes", "Hours"];
   List<String> repeat = [
@@ -58,6 +60,9 @@ class _AddTaskState extends State<AddTask> {
     remindSelectionFocus = FocusNode();
     repeatSelectionFocus = FocusNode();
   }
+  String _startTime =Get.mediaQuery.alwaysUse24HourFormat?DateFormat("HH:mm").format(DateTime.now()).toString():DateFormat("hh:mm a").format(DateTime.now()).toString();
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +111,7 @@ class _AddTaskState extends State<AddTask> {
                         print("Form Invalid");
                       } else {
                         _addTaskToDb();
+                        _addAlarmTodb();
 
                       }
                     });
@@ -174,8 +180,16 @@ class _AddTaskState extends State<AddTask> {
       remind: int.parse(remindController.text),
       repeat: repeatSelection.toString(),
     ));
-  print("My ID is $value");
-  print(noteController.text.toString());
+
+  // int alarmValue = await _taskController.addAlarm(
+  //   alarmTiming: AlarmTiming(
+  //     dateTime: NotificationService().scheduleDate.toString()
+  //   )
+  // );
+
+  // print("Alarm Inserted $alarmValue");
+  // print(NotificationService().scheduleDate.toString());
+
   }
 
   _timeSelection() {
@@ -322,5 +336,10 @@ class _AddTaskState extends State<AddTask> {
         _endTime = formattedTime!;
       });
     }
+  }
+
+  void _addAlarmTodb() {
+
+
   }
 }

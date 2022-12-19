@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_localnotification/AddTask.dart';
+import 'package:flutter_localnotification/Models/TaskModels.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:get/get.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -14,39 +17,42 @@ class NotificationService {
 
   NotificationDetails platformChannelSpecificsconst = NotificationDetails(
       android: AndroidNotificationDetails(
-    "channelId",
-    "channelName",
-    ticker: 'ticker',
-    channelShowBadge: true,
-    enableVibration: true,
-    enableLights: true,
-    color: Colors.green,
-    playSound: true,
-    // sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
-    priority: Priority.high,
-    vibrationPattern:
-        Int64List.fromList([0, 1000, 200, 1000, 200, 1000, 200, 1000]),
-    category: AndroidNotificationCategory.alarm,
-    importance: Importance.max,
-    actions: [
-      const AndroidNotificationAction("1", "Mark As Read"),
-      const AndroidNotificationAction("2", "Open"),
-    ],
-  ));
-  NotificationDetails themePlatformChannelSpecificsconst = const NotificationDetails(
-      android: AndroidNotificationDetails(
         "channelId",
         "channelName",
         ticker: 'ticker',
         channelShowBadge: true,
+        enableVibration: true,
         enableLights: true,
         color: Colors.green,
-        enableVibration: false,
         playSound: true,
+        sound:
+            const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
         priority: Priority.high,
+        vibrationPattern: Int64List.fromList([0, 1000, 200]),
         category: AndroidNotificationCategory.alarm,
         importance: Importance.max,
-      ));
+        actions: [
+          const AndroidNotificationAction("1", "Mark As Read"),
+          const AndroidNotificationAction("2", "Open"),
+        ],
+      ),
+      iOS: const DarwinNotificationDetails());
+  NotificationDetails themePlatformChannelSpecificsconst =
+      const NotificationDetails(
+          iOS: DarwinNotificationDetails(),
+          android: AndroidNotificationDetails(
+            "channelId",
+            "channelName",
+            ticker: 'ticker',
+            channelShowBadge: true,
+            enableLights: true,
+            color: Colors.green,
+            enableVibration: false,
+            playSound: true,
+            priority: Priority.high,
+            category: AndroidNotificationCategory.alarm,
+            importance: Importance.max,
+          ));
 
   factory NotificationService() {
     return _notificationService;
@@ -55,6 +61,7 @@ class NotificationService {
   NotificationService._internal();
 
   Future<void> init() async {
+    await _configureLocalTimezone();
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('ic_launcher');
 
@@ -65,14 +72,25 @@ class NotificationService {
       requestAlertPermission: false,
       onDidReceiveLocalNotification: onDidReceiveLocalNotification,
     );
-
     FlutterLocalNotificationsPlugin().initialize(
       InitializationSettings(
           android: initializationSettingsAndroid,
           iOS: initializationSettingsIOS),
-      onDidReceiveNotificationResponse: onNotificationClicked,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse notificationResponse) {
+        switch (notificationResponse.notificationResponseType) {
+          case NotificationResponseType.selectedNotification:
+            print("Notification Selected");
+            break;
+          case NotificationResponseType.selectedNotificationAction:
+            if (notificationResponse.actionId == "2") {
+              print(notificationResponse.actionId);
+              Get.to(const AddTask());
+            }
+            break;
+        }
+      },
     );
-    tz.initializeTimeZones();
   }
 
   showNotification() async {
@@ -83,20 +101,18 @@ class NotificationService {
 
   showThemeNotification({required String title, required String body}) async {
     await flutterLocalNotificationsPlugin.show(
-        3,
-        title,
-        body,
-        themePlatformChannelSpecificsconst,
+        3, title, body, themePlatformChannelSpecificsconst,
         payload: "data");
   }
 
-  showScheduledNotification() async {
+  showScheduledNotification(int hour, int minute, TaskData task) async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
-        1,
-        "A Notification From My App",
-        "Scheduled Notice",
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3)),
+        task.id!.toInt(),
+        task.title,
+        task.note,
+        _convertTime(hour, minute),
         platformChannelSpecificsconst,
+        matchDateTimeComponents: DateTimeComponents.time,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime);
@@ -110,4 +126,31 @@ class NotificationService {
   }
 
   void onNotificationClicked(NotificationResponse details) {}
+
+  // tz.TZDateTime scheduleDate = tz.TZDateTime.now(tz.local);
+
+  tz.TZDateTime _convertTime(int hour, int minute) {
+    print("I am Coverting Time");
+    print("Hour ${hour.toString()}");
+    print("Minute ${minute.toString()}");
+
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduleDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+
+    if (scheduleDate.isBefore(now)) {
+      scheduleDate = scheduleDate.add(const Duration(days: 1));
+    }
+
+    print(scheduleDate);
+
+    return scheduleDate;
+  }
+
+  Future<void> _configureLocalTimezone() async {
+    tz.initializeTimeZones();
+    final String currentTimeZone =
+        await FlutterNativeTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(currentTimeZone));
+  }
 }
