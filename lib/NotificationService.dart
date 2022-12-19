@@ -25,12 +25,12 @@ class NotificationService {
         enableLights: true,
         color: Colors.green,
         playSound: true,
-        sound:
-            const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
+        // sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
         priority: Priority.high,
         vibrationPattern: Int64List.fromList([0, 1000, 200]),
         category: AndroidNotificationCategory.alarm,
         importance: Importance.max,
+        channelAction: AndroidNotificationChannelAction.createIfNotExists,
         actions: [
           const AndroidNotificationAction("1", "Mark As Read"),
           const AndroidNotificationAction("2", "Open"),
@@ -80,7 +80,9 @@ class NotificationService {
           (NotificationResponse notificationResponse) {
         switch (notificationResponse.notificationResponseType) {
           case NotificationResponseType.selectedNotification:
+            print(notificationResponse.actionId);
             print("Notification Selected");
+            Get.to(const AddTask());
             break;
           case NotificationResponseType.selectedNotificationAction:
             if (notificationResponse.actionId == "2") {
