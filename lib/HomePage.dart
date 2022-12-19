@@ -224,7 +224,7 @@ class _HomePageState extends State<HomePage> {
     Get.bottomSheet(Container(
       padding: const EdgeInsets.only(top: 4),
       height: task.isCompleted == 1
-          ? MediaQuery.of(context).size.height / 6
+          ? MediaQuery.of(context).size.height / 5.5
           : MediaQuery.of(context).size.height / 4,
       color: Get.isDarkMode ? Colors.grey : Colors.white,
       child: Column(

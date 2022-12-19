@@ -37,8 +37,7 @@ class NotificationService {
         ],
       ),
       iOS: const DarwinNotificationDetails());
-  NotificationDetails themePlatformChannelSpecificsconst =
-      const NotificationDetails(
+  NotificationDetails themePlatformChannelSpecificsconst = const NotificationDetails(
           iOS: DarwinNotificationDetails(),
           android: AndroidNotificationDetails(
             "channelId",
@@ -127,9 +126,7 @@ class NotificationService {
     Get.dialog(const Text("Welcome To Flutter"));
   }
 
-  void onNotificationClicked(NotificationResponse details) {}
 
-  // tz.TZDateTime scheduleDate = tz.TZDateTime.now(tz.local);
 
   tz.TZDateTime _convertTime(int hour, int minute) {
     print("I am Coverting Time");

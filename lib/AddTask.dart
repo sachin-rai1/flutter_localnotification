@@ -111,7 +111,7 @@ class _AddTaskState extends State<AddTask> {
                         print("Form Invalid");
                       } else {
                         _addTaskToDb();
-                        _addAlarmTodb();
+                        Get.snackbar("Data Saved", "Successfully" , snackPosition: SnackPosition.BOTTOM , borderRadius: 15 , backgroundColor: primaryColor);
 
                       }
                     });
@@ -181,14 +181,6 @@ class _AddTaskState extends State<AddTask> {
       repeat: repeatSelection.toString(),
     ));
 
-  // int alarmValue = await _taskController.addAlarm(
-  //   alarmTiming: AlarmTiming(
-  //     dateTime: NotificationService().scheduleDate.toString()
-  //   )
-  // );
-
-  // print("Alarm Inserted $alarmValue");
-  // print(NotificationService().scheduleDate.toString());
 
   }
 
@@ -338,8 +330,5 @@ class _AddTaskState extends State<AddTask> {
     }
   }
 
-  void _addAlarmTodb() {
 
-
-  }
 }
