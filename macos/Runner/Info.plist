@@ -28,5 +28,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	  <key>UIBackgroundModes</key>
+      <array>
+          <string>processing</string>
+          <string>remote-notification</string>
+          <string>voip</string>
+      </array>
 </dict>
 </plist>

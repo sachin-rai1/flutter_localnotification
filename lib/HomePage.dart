@@ -81,6 +81,8 @@ class _HomePageState extends State<HomePage> {
         itemCount: _taskController.taskList.length,
         itemBuilder: (BuildContext context, int index) {
           TaskData task = _taskController.taskList[index];
+          print(task.toJson());
+          print(task.toString());
           if (task.repeat == "Daily") {
             DateTime date = DateFormat.Hm().parse(task.startTime.toString());
             var myTime = DateFormat("HH:mm").format(date);

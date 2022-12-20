@@ -37,7 +37,8 @@ class NotificationService {
         ],
       ),
       iOS: const DarwinNotificationDetails());
-  NotificationDetails themePlatformChannelSpecificsconst = const NotificationDetails(
+  NotificationDetails themePlatformChannelSpecificsconst =
+      const NotificationDetails(
           iOS: DarwinNotificationDetails(),
           android: AndroidNotificationDetails(
             "channelId",
@@ -94,10 +95,9 @@ class NotificationService {
     );
   }
 
-  showNotification() async {
-    await flutterLocalNotificationsPlugin.show(
-        0, "Your Timer is Up", "Wake Up", platformChannelSpecificsconst,
-        payload: "data");
+  showNotification(String title, String body) async {
+    await flutterLocalNotificationsPlugin
+        .show(0, title, body, platformChannelSpecificsconst, payload: "data");
   }
 
   showThemeNotification({required String title, required String body}) async {
@@ -125,8 +125,6 @@ class NotificationService {
       int id, String? title, String? body, String? payload) async {
     Get.dialog(const Text("Welcome To Flutter"));
   }
-
-
 
   tz.TZDateTime _convertTime(int hour, int minute) {
     print("I am Coverting Time");

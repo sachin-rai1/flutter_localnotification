@@ -33,12 +33,12 @@ class _AlarmManager extends State<AlarmManager> {
   static void _oneShotTaskCallback() {
     print("One Shot Task Running");
     Vibration.vibrate(pattern: [0, 10000, 500, 20000]);
-    NotificationService().showNotification();
+    // NotificationService().showNotification();
   }
 
   static void _oneShotAtTaskCallback() {
     print("One Shot At Task Running");
-    NotificationService().showNotification();
+    // NotificationService().showNotification();
     Vibration.vibrate(pattern: [0, 1000, 200, 2000]);
   }
 

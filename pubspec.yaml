@@ -50,6 +50,11 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   google_fonts: ^3.0.1
   flutter_native_timezone: ^2.0.0
+  phone_state: ^1.0.2
+  permission_handler: ^10.2.0
+  uuid: ^3.0.7
+  workmanager: ^0.5.1
+  call_log: ^4.0.0
 
 dev_dependencies:
   flutter_test:

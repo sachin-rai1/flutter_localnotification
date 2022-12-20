@@ -180,6 +180,7 @@ class _AddTaskState extends State<AddTask> {
       remind: int.parse(remindController.text),
       repeat: repeatSelection.toString(),
     ));
+  print(value);
 
 
   }
