@@ -1,11 +1,70 @@
+import 'dart:isolate';
+import 'dart:developer' as developer;
+import 'dart:ui';
 import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localnotification/NotificationService.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phone_state/phone_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'package:workmanager/workmanager.dart';
 
-import 'package:uuid/uuid.dart';
+dynamic name;
+dynamic number;
+dynamic formatNumber;
+dynamic catchedNumber;
+
+const String countKey = 'count';
+
+/// The name associated with the UI isolate's [SendPort].
+const String isolateName = 'isolateCall';
+
+/// A port used to communicate from a background isolate to the UI isolate.
+ReceivePort port = ReceivePort();
+
+SharedPreferences? prefs;
+
+void callbackDispatcher() {
+  Workmanager().executeTask((dynamic task, dynamic inputData) async {
+    try {
+      final Iterable<CallLogEntry> cLog = await CallLog.get();
+      print('Queried call log entries :');
+      int i = 0;
+      for (CallLogEntry entry in cLog) {
+        if (i == 0) {
+          print('-------------------------------------');
+          formatNumber = entry.formattedNumber;
+          catchedNumber = {entry.cachedMatchedNumber};
+          number = entry.number;
+          name = entry.name;
+          print("name :  $name");
+          print("format : $formatNumber");
+          print("Cactched : $catchedNumber");
+          print("Number $number");
+          print('TYPE       : ${entry.callType}');
+          print(
+              'DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
+          print('DURATION   : ${entry.duration}');
+          print('ACCOUNT ID : ${entry.phoneAccountId}');
+          print('ACCOUNT ID : ${entry.phoneAccountId}');
+          print('SIM NAME   : ${entry.simDisplayName}');
+          print('-------------------------------------');
+
+          NotificationService()
+              .showNotification(name.toString(), formatNumber.toString());
+        }
+        i++;
+      }
+    } on PlatformException catch (e, s) {
+      print(e);
+      print(s);
+      return true;
+    }
+    return true;
+  });
+}
 
 class GetIncomingCall extends StatefulWidget {
   const GetIncomingCall({Key? key}) : super(key: key);
@@ -24,22 +83,6 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   String callReceived =
       "AsyncSnapshot<PhoneStateStatus?>(ConnectionState.active, PhoneStateStatus.CALL_STARTED, null, null)";
 
-
-  var name ;
-  var number;
-  var formatNumber;
-
-  Future<void> getRecentCalls() async {
-    final Iterable<CallLogEntry> cLog = await CallLog.get();
-
-    for (CallLogEntry entry in cLog) {
-       name = entry.name;
-       number = entry.number;
-       formatNumber = entry.formattedNumber;
-
-    }
-  }
-
   Future<bool> requestPermission() async {
     var status = await Permission.phone.request();
     switch (status) {
@@ -53,10 +96,44 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
     }
   }
 
+  int _counter = 0;
+
+  Future<void> _incrementCounter() async {
+    developer.log('Increment counter!');
+    // Ensure we've loaded the updated count from the background isolate.
+    await prefs?.reload();
+
+    setState(() {
+      _counter++;
+    });
+  }
+
+  static SendPort? uiSendPort;
+
+  @pragma('vm:entry-point')
+  static Future<void> callback() async {
+    developer.log('Incoming Call Arrived!');
+
+    // Get the previous cached count and increment it.
+    final prefs = await SharedPreferences.getInstance();
+    final currentCount = prefs.getInt(countKey) ?? 0;
+    await prefs.setInt(countKey, currentCount + 1);
+
+    Workmanager().registerOneOffTask(
+      DateTime.now().millisecondsSinceEpoch.toString(),
+      'simpleTask',
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+    );
+
+    // This will be null if we're running in the background.
+    uiSendPort ??= IsolateNameServer.lookupPortByName(isolateName);
+    uiSendPort?.send(null);
+  }
+
   @override
   void initState() {
     super.initState();
-    getRecentCalls();
+    port.listen((_) async => await _incrementCounter());
     if (Platform.isIOS) setStream();
     requestPermission();
   }
@@ -111,28 +188,24 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
                   return FloatingActionButton(onPressed: () {});
                 }
                 if (phoneStatus.toString() == callDeclined) {
-                  return NotificationService()
-                      .showNotification(Uuid().v4(), "");
+                  callback();
+                  return const Icon(Icons.clear);
                 }
                 if (phoneStatus.toString() == callReceived) {
                   return const Icon(Icons.add_call);
                 }
-                return Container();
+                return ElevatedButton(
+                  onPressed: () {
+                    Workmanager().registerOneOffTask(
+                      DateTime.now().millisecondsSinceEpoch.toString(),
+                      'simpleTask',
+                      existingWorkPolicy: ExistingWorkPolicy.replace,
+                    );
+                  },
+                  child: const Text("Get Data"),
+                );
               },
             ),
-            Expanded(
-                child: ListView.builder(
-                    itemCount: 100,
-                    itemBuilder: (BuildContext context, int index) {
-                      {
-                        print(formatNumber.toString());
-                        return Column(
-                            children:  [
-                              Text(name),
-                              Text(formatNumber),
-                            ]);
-                      }
-                    }))
           ],
         ),
       ),

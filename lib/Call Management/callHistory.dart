@@ -3,26 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
 
+void callbackDispatcher1() {
 
-void callbackDispatcher() {
   Workmanager().executeTask((dynamic task, dynamic inputData) async {
     print('Background Services are Working!');
     try {
       final Iterable<CallLogEntry> cLog = await CallLog.get();
-      print('Queried call log entries');
-      for(CallLogEntry entry in cLog) {
-        print('-------------------------------------');
-        print('F. NUMBER  : ${entry.formattedNumber}');
-        print('C.M. NUMBER: ${entry.cachedMatchedNumber}');
-        print('NUMBER     : ${entry.number}');
-        print('NAME       : ${entry.name}');
-        print('TYPE       : ${entry.callType}');
-        print('DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
-        print('DURATION   : ${entry.duration}');
-        print('ACCOUNT ID : ${entry.phoneAccountId}');
-        print('ACCOUNT ID : ${entry.phoneAccountId}');
-        print('SIM NAME   : ${entry.simDisplayName}');
-        print('-------------------------------------');
+      print('Queried call log entries :');
+      print(cLog);
+      int i = 0;
+      for (CallLogEntry entry in cLog) {
+        print(i);
+        if(i == 0){
+          print('-------------------------------------');
+          print('F. NUMBbER  : ${entry.formattedNumber}');
+          print('C.M. NdrgdfgUMBER: ${entry.cachedMatchedNumber}');
+          print('NUMBER     : ${entry.number}');
+          print('NAME       : ${entry.name}');
+          print('TYPE       : ${entry.callType}');
+          print(
+              'DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
+          print('DURATION   : ${entry.duration}');
+          print('ACCOUNT ID : ${entry.phoneAccountId}');
+          print('ACCOUNT ID : ${entry.phoneAccountId}');
+          print('SIM NAME   : ${entry.simDisplayName}');
+          print('-------------------------------------');
+        }
+
+        i++;
       }
       return true;
     } on PlatformException catch (e, s) {
@@ -44,6 +52,11 @@ class _CallHistoryState extends State<CallHistory> {
   Iterable<CallLogEntry> _callLogEntries = <CallLogEntry>[];
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const TextStyle mono = TextStyle(fontFamily: 'monospace');
     final List<Widget> children = <Widget>[];
@@ -59,7 +72,9 @@ class _CallHistoryState extends State<CallHistory> {
             Text('NUMBER     : ${entry.number}', style: mono),
             Text('NAME       : ${entry.name}', style: mono),
             Text('TYPE       : ${entry.callType}', style: mono),
-            Text('DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!) }',style: mono),
+            Text(
+                'DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}',
+                style: mono),
             Text('DURATION   : ${entry.duration}', style: mono),
             Text('ACCOUNT ID : ${entry.phoneAccountId}', style: mono),
             Text('SIM NAME   : ${entry.simDisplayName}', style: mono),
@@ -79,7 +94,8 @@ class _CallHistoryState extends State<CallHistory> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     onPressed: () async {
-                      final Iterable<CallLogEntry> result = await CallLog.query();
+                      final Iterable<CallLogEntry> result =
+                          await CallLog.query();
                       setState(() {
                         _callLogEntries = result;
                       });
@@ -95,7 +111,7 @@ class _CallHistoryState extends State<CallHistory> {
                     onPressed: () {
                       Workmanager().registerOneOffTask(
                         DateTime.now().millisecondsSinceEpoch.toString(),
-                        'simpleTask',
+                        "simpleTask",
                         existingWorkPolicy: ExistingWorkPolicy.replace,
                       );
                     },
