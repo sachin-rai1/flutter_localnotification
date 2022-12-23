@@ -1,70 +1,13 @@
-import 'dart:isolate';
-import 'dart:developer' as developer;
-import 'dart:ui';
+import 'dart:developer';
+
 import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localnotification/NotificationService.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phone_state/phone_state.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
-import 'package:workmanager/workmanager.dart';
-
-dynamic name;
-dynamic number;
-dynamic formatNumber;
-dynamic catchedNumber;
-
-const String countKey = 'count';
-
-/// The name associated with the UI isolate's [SendPort].
-const String isolateName = 'isolateCall';
-
-/// A port used to communicate from a background isolate to the UI isolate.
-ReceivePort port = ReceivePort();
-
-SharedPreferences? prefs;
-
-void callbackDispatcher() {
-  Workmanager().executeTask((dynamic task, dynamic inputData) async {
-    try {
-      final Iterable<CallLogEntry> cLog = await CallLog.get();
-      print('Queried call log entries :');
-      int i = 0;
-      for (CallLogEntry entry in cLog) {
-        if (i == 0) {
-          print('-------------------------------------');
-          formatNumber = entry.formattedNumber;
-          catchedNumber = {entry.cachedMatchedNumber};
-          number = entry.number;
-          name = entry.name;
-          print("name :  $name");
-          print("format : $formatNumber");
-          print("Cactched : $catchedNumber");
-          print("Number $number");
-          print('TYPE       : ${entry.callType}');
-          print(
-              'DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
-          print('DURATION   : ${entry.duration}');
-          print('ACCOUNT ID : ${entry.phoneAccountId}');
-          print('ACCOUNT ID : ${entry.phoneAccountId}');
-          print('SIM NAME   : ${entry.simDisplayName}');
-          print('-------------------------------------');
-
-          NotificationService()
-              .showNotification(name.toString(), formatNumber.toString());
-        }
-        i++;
-      }
-    } on PlatformException catch (e, s) {
-      print(e);
-      print(s);
-      return true;
-    }
-    return true;
-  });
-}
 
 class GetIncomingCall extends StatefulWidget {
   const GetIncomingCall({Key? key}) : super(key: key);
@@ -74,7 +17,13 @@ class GetIncomingCall extends StatefulWidget {
 }
 
 class _GetIncomingCallState extends State<GetIncomingCall> {
+  dynamic name;
+  dynamic number;
+  dynamic formatNumber;
+  dynamic catchedNumber;
+
   PhoneStateStatus status = PhoneStateStatus.NOTHING;
+
   bool granted = false;
   String incomingCall =
       "AsyncSnapshot<PhoneStateStatus?>(ConnectionState.active, PhoneStateStatus.CALL_INCOMING, null, null)";
@@ -96,44 +45,64 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
     }
   }
 
-  int _counter = 0;
+  Future<bool?> requestOverLayPermission() async {
+    var overlayStatus = await FlutterOverlayWindow.isPermissionGranted();
+    log("Is Permission Granted: $overlayStatus");
 
-  Future<void> _incrementCounter() async {
-    developer.log('Increment counter!');
-    // Ensure we've loaded the updated count from the background isolate.
-    await prefs?.reload();
+    final bool? res = await FlutterOverlayWindow.requestPermission();
+    log("status: $res");
 
-    setState(() {
-      _counter++;
-    });
+    if (await FlutterOverlayWindow.isActive()) {
+      return null;
+    }
+
+    await FlutterOverlayWindow.showOverlay(
+      height: 0,
+      width: 0,
+      enableDrag: false,
+      overlayTitle: "PersonalApp",
+      overlayContent: 'Started',
+      flag: OverlayFlag.defaultFlag,
+      visibility: NotificationVisibility.visibilitySecret,
+      positionGravity: PositionGravity.right,
+    );
+    return null;
   }
 
-  static SendPort? uiSendPort;
+  Future<void> callbackDispatcher() async {
+    try {
+      Iterable<CallLogEntry> cLog = await CallLog.get();
+      print('Queried call log entries :');
+      int i = 0;
+      for (CallLogEntry entry in cLog) {
+        if (i == 0) {
+          log('-------------------------------------');
+          formatNumber = entry.formattedNumber;
+          catchedNumber = {entry.cachedMatchedNumber};
+          number = entry.number;
+          name = entry.name ?? "Unknown";
+          log("name :  $name");
+          log("format : $formatNumber");
+          log("Cached : $catchedNumber");
+          log("Number $number");
+          log('TYPE       : ${entry.callType}');
+          log('DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
+          log('DURATION   : ${entry.duration}');
+          log('ACCOUNT ID : ${entry.phoneAccountId}');
+          log('ACCOUNT ID : ${entry.phoneAccountId}');
+          log('SIM NAME   : ${entry.simDisplayName}');
+          log('-------------------------------------');
 
-  @pragma('vm:entry-point')
-  static Future<void> callback() async {
-    developer.log('Incoming Call Arrived!');
-
-    // Get the previous cached count and increment it.
-    final prefs = await SharedPreferences.getInstance();
-    final currentCount = prefs.getInt(countKey) ?? 0;
-    await prefs.setInt(countKey, currentCount + 1);
-
-    Workmanager().registerOneOffTask(
-      DateTime.now().millisecondsSinceEpoch.toString(),
-      'simpleTask',
-      existingWorkPolicy: ExistingWorkPolicy.replace,
-    );
-
-    // This will be null if we're running in the background.
-    uiSendPort ??= IsolateNameServer.lookupPortByName(isolateName);
-    uiSendPort?.send(null);
+          await NotificationService().showNotification(name, number);
+        }
+        i++;
+      }
+    } on PlatformException catch (e) {}
   }
 
   @override
   void initState() {
     super.initState();
-    port.listen((_) async => await _incrementCounter());
     if (Platform.isIOS) setStream();
     requestPermission();
   }
@@ -187,55 +156,30 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
                 if (phoneStatus.toString() == incomingCall) {
                   return FloatingActionButton(onPressed: () {});
                 }
+
                 if (phoneStatus.toString() == callDeclined) {
-                  callback();
+                  callbackDispatcher();
                   return const Icon(Icons.clear);
                 }
+
                 if (phoneStatus.toString() == callReceived) {
                   return const Icon(Icons.add_call);
                 }
-                return ElevatedButton(
-                  onPressed: () {
-                    Workmanager().registerOneOffTask(
-                      DateTime.now().millisecondsSinceEpoch.toString(),
-                      'simpleTask',
-                      existingWorkPolicy: ExistingWorkPolicy.replace,
-                    );
-                  },
-                  child: const Text("Get Data"),
-                );
+                return Container();
               },
+            ),
+            ElevatedButton(
+              onPressed: () {
+                FlutterOverlayWindow.overlayListener.listen((event) {
+                  log("$event");
+                });
+                requestOverLayPermission();
+              },
+              child: const Text("Get Data"),
             ),
           ],
         ),
       ),
     );
-  }
-
-  IconData getIcons() {
-    switch (status) {
-      case PhoneStateStatus.NOTHING:
-        print("Mai kuchh nhi Karunga");
-        return Icons.clear;
-      case PhoneStateStatus.CALL_INCOMING:
-        print("Call aa gaya");
-        return Icons.add_call;
-      case PhoneStateStatus.CALL_STARTED:
-        return Icons.call;
-      case PhoneStateStatus.CALL_ENDED:
-        return Icons.call_end;
-    }
-  }
-
-  Color getColor() {
-    switch (status) {
-      case PhoneStateStatus.NOTHING:
-      case PhoneStateStatus.CALL_ENDED:
-        return Colors.red;
-      case PhoneStateStatus.CALL_INCOMING:
-        return Colors.green;
-      case PhoneStateStatus.CALL_STARTED:
-        return Colors.orange;
-    }
   }
 }

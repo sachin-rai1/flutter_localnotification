@@ -25,7 +25,6 @@ class NotificationService {
         enableLights: true,
         color: Colors.green,
         playSound: true,
-        // sound: const RawResourceAndroidNotificationSound('tumanmerijaanlovehindi'),
         priority: Priority.high,
         vibrationPattern: Int64List.fromList([0, 1000, 200]),
         category: AndroidNotificationCategory.alarm,
@@ -82,11 +81,14 @@ class NotificationService {
           case NotificationResponseType.selectedNotification:
             print(notificationResponse.actionId);
             print("Notification Selected");
+
             Get.to(const AddTask());
+
             break;
           case NotificationResponseType.selectedNotificationAction:
             if (notificationResponse.actionId == "2") {
               print(notificationResponse.actionId);
+
               Get.to(const AddTask());
             }
             break;
