@@ -46,6 +46,7 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   }
 
   Future<bool?> requestOverLayPermission() async {
+
     var overlayStatus = await FlutterOverlayWindow.isPermissionGranted();
     log("Is Permission Granted: $overlayStatus");
 
@@ -70,9 +71,13 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   }
 
   Future<void> callbackDispatcher() async {
+
+
+    await Future.delayed(const Duration(seconds: 2));
+
     try {
       Iterable<CallLogEntry> cLog = await CallLog.get();
-      print('Queried call log entries :');
+      log('Queried call log entries :');
       int i = 0;
       for (CallLogEntry entry in cLog) {
         if (i == 0) {
@@ -158,6 +163,7 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
                 }
 
                 if (phoneStatus.toString() == callDeclined) {
+
                   callbackDispatcher();
                   return const Icon(Icons.clear);
                 }
