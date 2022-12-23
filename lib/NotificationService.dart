@@ -82,14 +82,14 @@ class NotificationService {
             print(notificationResponse.actionId);
             print("Notification Selected");
 
-            Get.to(const AddTask());
+            Get.to(()=>const AddTask());
 
             break;
           case NotificationResponseType.selectedNotificationAction:
             if (notificationResponse.actionId == "2") {
               print(notificationResponse.actionId);
 
-              Get.to(const AddTask());
+              Get.to(()=>const AddTask());
             }
             break;
         }

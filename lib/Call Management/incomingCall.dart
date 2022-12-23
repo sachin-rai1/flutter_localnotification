@@ -21,6 +21,7 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   dynamic number;
   dynamic formatNumber;
   dynamic catchedNumber;
+  dynamic callDuration;
 
   PhoneStateStatus status = PhoneStateStatus.NOTHING;
 
@@ -46,7 +47,6 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   }
 
   Future<bool?> requestOverLayPermission() async {
-
     var overlayStatus = await FlutterOverlayWindow.isPermissionGranted();
     log("Is Permission Granted: $overlayStatus");
 
@@ -71,8 +71,6 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   }
 
   Future<void> callbackDispatcher() async {
-
-
     await Future.delayed(const Duration(seconds: 2));
 
     try {
@@ -92,13 +90,16 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
           log("Number $number");
           log('TYPE       : ${entry.callType}');
           log('DATE       : ${DateTime.fromMillisecondsSinceEpoch(entry.timestamp!)}');
+          callDuration = entry.duration;
           log('DURATION   : ${entry.duration}');
           log('ACCOUNT ID : ${entry.phoneAccountId}');
           log('ACCOUNT ID : ${entry.phoneAccountId}');
           log('SIM NAME   : ${entry.simDisplayName}');
           log('-------------------------------------');
 
-          await NotificationService().showNotification(name, number);
+          if (callDuration > 0) {
+            await NotificationService().showNotification(name, number);
+          }
         }
         i++;
       }
@@ -163,7 +164,6 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
                 }
 
                 if (phoneStatus.toString() == callDeclined) {
-
                   callbackDispatcher();
                   return const Icon(Icons.clear);
                 }
