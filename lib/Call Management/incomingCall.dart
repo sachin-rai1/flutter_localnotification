@@ -9,6 +9,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:phone_state/phone_state.dart';
 import 'dart:io';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+
+SharedPreferences? prefs;
+
 class GetIncomingCall extends StatefulWidget {
   const GetIncomingCall({Key? key}) : super(key: key);
 
@@ -26,6 +31,7 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   PhoneStateStatus status = PhoneStateStatus.NOTHING;
 
   bool granted = false;
+
   String incomingCall =
       "AsyncSnapshot<PhoneStateStatus?>(ConnectionState.active, PhoneStateStatus.CALL_INCOMING, null, null)";
   String callDeclined =
@@ -33,7 +39,10 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   String callReceived =
       "AsyncSnapshot<PhoneStateStatus?>(ConnectionState.active, PhoneStateStatus.CALL_STARTED, null, null)";
 
+  var callPermission;
+
   Future<bool> requestPermission() async {
+    log("I came Here");
     var status = await Permission.phone.request();
     switch (status) {
       case PermissionStatus.denied:
@@ -42,13 +51,18 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
       case PermissionStatus.permanentlyDenied:
         return false;
       case PermissionStatus.granted:
+        prefs?.setBool("callPermission", true);
         return true;
     }
   }
 
+  var overlayStatus;
+
   Future<bool?> requestOverLayPermission() async {
-    var overlayStatus = await FlutterOverlayWindow.isPermissionGranted();
+
+    overlayStatus = await FlutterOverlayWindow.isPermissionGranted();
     log("Is Permission Granted: $overlayStatus");
+    prefs?.setBool("overlay", overlayStatus);
 
     final bool? res = await FlutterOverlayWindow.requestPermission();
     log("status: $res");
@@ -69,6 +83,15 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
     );
     return null;
   }
+
+
+  Future<void> getState()  async{
+    overlayStatus = prefs?.get("overlay");
+    callPermission = prefs?.get("callPermission");
+
+  }
+
+
 
   Future<void> callbackDispatcher() async {
     await Future.delayed(const Duration(seconds: 2));
@@ -109,8 +132,11 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
   @override
   void initState() {
     super.initState();
+    getState();
     if (Platform.isIOS) setStream();
-    requestPermission();
+    if(callPermission != true) {
+      requestPermission();
+    }
   }
 
   void setStream() {
@@ -176,10 +202,12 @@ class _GetIncomingCallState extends State<GetIncomingCall> {
             ),
             ElevatedButton(
               onPressed: () {
-                FlutterOverlayWindow.overlayListener.listen((event) {
-                  log("$event");
-                });
-                requestOverLayPermission();
+
+                log(overlayStatus.toString());
+                if (overlayStatus == false || overlayStatus == null) {
+                  requestOverLayPermission();
+                }
+
               },
               child: const Text("Get Data"),
             ),

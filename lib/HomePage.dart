@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localnotification/AddTask.dart';
+import 'package:flutter_localnotification/Call%20Management/incomingCall.dart';
 import 'package:flutter_localnotification/Models/TaskModels.dart';
 import 'package:flutter_localnotification/MyWidgets.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -60,6 +61,15 @@ class _HomePageState extends State<HomePage> {
         ),
         MyButton(
           onTap: () async {
+            Get.to(()=> const GetIncomingCall());
+          },
+          label: 'Incoming Call',
+          height: 50,
+          width: 100,
+          circularInt: 10,
+        ),
+        MyButton(
+          onTap: () async {
             await Get.to(() => const AddTask());
             setState(() {
               _taskController.getTasks();
@@ -70,6 +80,7 @@ class _HomePageState extends State<HomePage> {
           width: 100,
           circularInt: 10,
         ),
+
       ],
     );
   }
